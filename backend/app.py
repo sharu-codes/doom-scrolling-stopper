@@ -44,9 +44,10 @@ def analyze():
     return jsonify(result) # return the result as JSON to the browser
 
 # ––––––––– start server –––––––––
+# debug=True → auto-restarts server when you save code changes
+# host='0.0.0.0' → accessible from any device on your network
+# port=5000 → server runs at http://localhost:5000
+port = int(os.environ.get('PORT', 5000)) # Use PORT env var if set (for deployment), otherwise default to 5000
+app.run(host='0.0.0.0', port=port)
 if __name__ == '__main__':
-    # debug=True → auto-restarts server when you save code changes
-    # host='0.0.0.0' → accessible from any device on your network
-    # port=5000 → server runs at http://localhost:5000
-    port = int(os.environ.get('PORT', 5000)) # Use PORT env var if set (for deployment), otherwise default to 5000
-    app.run(host='0.0.0.0', port=port)
+    pass
