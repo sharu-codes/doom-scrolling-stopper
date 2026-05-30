@@ -1,21 +1,17 @@
 # head pose + eye gaze using mediapipe and opencv
 
 import cv2 # reads webcam frames and displays the output
+import numpy as np # allows you to do math with the face and hand landmarks
+import math # allows you to do math with the face and hand landmarks
+import mediapipe as mp # detects 468 face landmarks and 21 hand landmarks
+from mediapipe.tasks import python as mp_python # allows you to use mediapipe's new task-based API for more efficient processing
+from mediapipe.tasks.python import vision # allows you to use mediapipe's vision tasks like face mesh and hand tracking
 from typing import TYPE_CHECKING
 
 # Allow static analyzers/type checkers to see the mediapipe import while
 # keeping a runtime-friendly fallback if mediapipe isn't installed.
-if TYPE_CHECKING:
-    import mediapipe as mp  # type: ignore
-else:
-    try:
-        import mediapipe as mp  # detects 468 face landmarks and 21 hand landmarks
-    except Exception:  # pragma: no cover - allow linting when mediapipe isn't installed
-        mp = None
-    # At runtime, if mediapipe is missing the caller will get a clear error.
-    # This avoids import-time linter/IDE errors in environments without mediapipe.
-import numpy as np # allows you to do math with the face and hand landmarks 
-import math # allows you to do math with the face and hand landmarks
+
+
 
 # ––––––––– setup Mediapipe Face Mesh and Hands –––––––––
 
