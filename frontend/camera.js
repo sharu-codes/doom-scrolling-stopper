@@ -1,7 +1,7 @@
 // camera.js — Webcam capture + backend communication + UI updates
 
 // ── Configuration ─────────────────────────────────────────────────────────
-const BACKEND_URL = 'http://localhost:5000/analyze';    // Where to send frames
+const BACKEND_URL = 'https://doom-scrolling-stopper.onrender.com/';    // Where to send frames
 const FRAME_INTERVAL_MS = 500;      // How often to analyze (every 500ms = 2 fps)
 const ALARM_THRESHOLD = 2;          // How many consecutive "alarm" results before sound plays
 const SAFE_THRESHOLD = 4;           // How many consecutive "safe" results before sound stops
