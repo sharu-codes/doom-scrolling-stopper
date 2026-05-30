@@ -141,7 +141,7 @@ def analyze_frame (frame_bytes):
     # convert BGR (opencv default) to RGB (mediapipe requirement)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb) # convert to mediapipe image format
-    result = face_landmarker.process(mp_image) # run mediapipe face detection
+    result = face_landmarker.detect(mp_image) # run mediapipe face detection
 
     # No Face Detected
     if not result.face_landmarks:
