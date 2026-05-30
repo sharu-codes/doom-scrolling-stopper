@@ -6,23 +6,34 @@ import math # allows you to do math with the face and hand landmarks
 import mediapipe as mp # detects 468 face landmarks and 21 hand landmarks
 from mediapipe.tasks import python as mp_python # allows you to use mediapipe's new task-based API for more efficient processing
 from mediapipe.tasks.python import vision # allows you to use mediapipe's vision tasks like face mesh and hand tracking
-from typing import TYPE_CHECKING
+from mediapipe.tasks.python.vision import FaceLandmarkerOptions, FaceLandmarker, RunningMode
+from mediapipe.tasks.python.components.containers import NormalizedLandmark
+import urllib.request # allows you to download mediapipe models from the internet
+import os # allows you to check if mediapipe models are already downloaded and stored locally
 
-# Allow static analyzers/type checkers to see the mediapipe import while
-# keeping a runtime-friendly fallback if mediapipe isn't installed.
+# Download the face landmark model file on first run
+# Render's server needs this file to detect faces
+MODEL_PATH = "/tmp/face_landmarker.task"
 
+if not os.path.exists(MODEL_PATH):
+    print("Downloading face landmarker model...", flush=True)
+    urllib.request.urlretrieve(
+        "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+        MODEL_PATH
+    )
+    print("Model downloaded.", flush=True)
 
-
-# ––––––––– setup Mediapipe Face Mesh and Hands –––––––––
-
-mp_face_mesh = mp.solutions.face_mesh # loads the face mesh from mediapipe
-
-face_mesh = mp_face_mesh.FaceMesh (
-    max_num_faces = 1, # only tracks 1 face (you)
-    refine_landmarks = True, # also detects iris landmarks (for eye gaze tracking)
-    min_detection_confidence = 0.5, # how confident mediapipe should be to detect a face
-    min_tracking_confidence = 0.5 # how confident it must be to keep tracking frame to frame
+# Create the face landmarker using new Tasks API
+options = FaceLandmarkerOptions(
+    base_options=mp_python.BaseOptions(model_asset_path=MODEL_PATH),
+    output_face_blendshapes=False,
+    output_facial_transformation_matrixes=False,
+    num_faces=1,
+    running_mode=RunningMode.IMAGE
 )
+face_landmarker = FaceLandmarker.create_from_options(options)
+print("Face landmarker ready.", flush=True)
+
 
 # ––––––––– 3D head pose constraints –––––––––
 # these are the real world 3D coordinates in mm of the 6 face landmarks that we will use to estimate the head pose
@@ -129,14 +140,15 @@ def analyze_frame (frame_bytes):
 
     # convert BGR (opencv default) to RGB (mediapipe requirement)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = face_mesh.process(rgb) # run mediapipe face detection
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb) # convert to mediapipe image format
+    result = face_landmarker.process(mp_image) # run mediapipe face detection
 
     # No Face Detected
-    if not results.multi_face_landmarks:
+    if not result.face_landmarks:
         return {'status': 'no_face', 'alarm': False, 'pitch': 0, 'iris': 0}
     
     # Face Found - Extract landmarks
-    lms = results.multi_face_landmarks[0].landmark # get list of 468 face landmarks for the first detected face
+    lms = result.face_landmarks[0] # get list of 468 face landmarks for the first detected face
     pitch = get_head_pitch (lms, img_w, img_h) # calculate head tilt
     eye_result = eye_looking_down (lms) # check eye gaze
 
