@@ -1,9 +1,22 @@
+import sys
+import traceback
+print("Starting app.py...", flush=True)
+
 # Flask web server that receives webcam frames and returns detection results
 import os
-from flask import Flask, request, jsonify # Flask: web framework
-from flask_cors import CORS # Flask-CORS: allows browser to talk to this server
-from detector import analyze_frame # import our detection logic
+print("Python version:", sys.version, flush=True)
 
+try:
+    from flask import Flask, request, jsonify # Flask: web framework
+    from flask_cors import CORS # Flask-CORS: allows browser to talk to this server
+    print("Flask imported OK", flush=True)
+    from detector import analyze_frame # import our detection logic
+    print("Detector imported OK", flush=True)
+except Exception as e:
+    print("IMPORT ERROR:", e, flush=True)
+    traceback.print_exc()
+    sys.exit(1) # exit the program if imports fail
+    
 app = Flask(__name__) # create Flask app
 
 # allows the frontend (running on a different port) to call this server
