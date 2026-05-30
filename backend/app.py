@@ -13,8 +13,9 @@ try:
     from detector import analyze_frame # import our detection logic
     print("Detector imported OK", flush=True)
 except Exception as e:
-    print("IMPORT ERROR:", e, flush=True)
-    traceback.print_exc()
+    print("DETECTOR IMPORT FAILED:", e, flush=True)
+    traceback.print_exc(file=sys.stdout)
+    sys.stdout.flush()
     sys.exit(1) # exit the program if imports fail
     
 app = Flask(__name__) # create Flask app
