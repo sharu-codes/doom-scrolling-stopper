@@ -1,0 +1,9 @@
+flask # creates your python web server
+flask-cors # allows your frontend to make requests to your backend without any issues
+# lets your browsers talk to your python server without any issues
+opencv-python # allows you to do computer vision tasks in python
+# reads webcam frames as images
+mediapipe # google ai's library - detects face landmarks and hand landmarks
+# detects the position of your face and hands in the webcam frames
+numpy # allows you to do math with arrays in python
+# allows you to do math with the face and hand landmarks

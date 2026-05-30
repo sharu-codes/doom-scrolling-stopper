@@ -1,0 +1,13 @@
+# Python Virtual Environment - never push this
+
+venv/
+
+# Python compiled files - not needed
+
+__pycache__/
+*.pyc
+*.pyo   
+
+# Windows system files 
+.DS_Store  
+Thumbs.db
