@@ -5,12 +5,7 @@ import math
 # Old MediaPipe API — works on Render's free Linux server (no GPU needed)
 import mediapipe as mp
 mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(
-    max_num_faces=1,
-    refine_landmarks=True,      # needed for iris landmarks (468, 473)
-    min_detection_confidence=0.5,
-    min_tracking_confidence=0.5
-)
+
 
 # 3D real-world face coordinates in mm — used for head pose calculation
 MODEL_POINTS = np.array([
@@ -76,35 +71,43 @@ def analyze_frame(frame_bytes):
 
     if frame is None:
         return {'status': 'no_frame', 'alarm': False}
+    
+    # Create fresh face_mesh per request — fixes timestamp mismatch on server
+    with mp_face_mesh.FaceMesh(
+        max_num_faces=1,
+        refine_landmarks=True,
+        min_detection_confidence=0.5,
+        min_tracking_confidence=0.5
+    ) as face_mesh:
+    
+        img_h, img_w = frame.shape[:2]
+        rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    img_h, img_w = frame.shape[:2]
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Use old solutions API — no graphics library needed
+        results = face_mesh.process(rgb)
 
-    # Use old solutions API — no graphics library needed
-    results = face_mesh.process(rgb)
+        if not results.multi_face_landmarks:
+            return {'status': 'no_face', 'alarm': False, 'pitch': 0, 'iris': 0}
 
-    if not results.multi_face_landmarks:
-        return {'status': 'no_face', 'alarm': False, 'pitch': 0, 'iris': 0}
+        lms   = results.multi_face_landmarks[0].landmark
+        pitch = get_head_pitch(lms, img_w, img_h)
+        eye_result = eye_looking_down(lms)
 
-    lms   = results.multi_face_landmarks[0].landmark
-    pitch = get_head_pitch(lms, img_w, img_h)
-    eye_result = eye_looking_down(lms)
+        if eye_result is None:
+            return {'status': 'eyes_closed', 'alarm': False, 'pitch': round(pitch,1), 'iris': 0}
 
-    if eye_result is None:
-        return {'status': 'eyes_closed', 'alarm': False, 'pitch': round(pitch,1), 'iris': 0}
+        is_looking_down, iris_val = eye_result
+        head_straight     = -10 < pitch < 20
+        eyes_centered     = 0.20 < iris_val < 0.68
+        looking_at_screen = head_straight and eyes_centered
+        alarm             = not looking_at_screen
 
-    is_looking_down, iris_val = eye_result
-    head_straight     = -10 < pitch < 20
-    eyes_centered     = 0.20 < iris_val < 0.68
-    looking_at_screen = head_straight and eyes_centered
-    alarm             = not looking_at_screen
-
-    return {
-        'status':            'ok',
-        'alarm':             alarm,
-        'looking_at_screen': looking_at_screen,
-        'pitch':             round(pitch, 1),
-        'iris':              round(iris_val, 3),
-        'head_straight':     head_straight,
-        'eyes_centered':     eyes_centered
-    }
+        return {
+            'status':            'ok',
+            'alarm':             alarm,
+            'looking_at_screen': looking_at_screen,
+            'pitch':             round(pitch, 1),
+            'iris':              round(iris_val, 3),
+            'head_straight':     head_straight,
+            'eyes_centered':     eyes_centered
+        }
