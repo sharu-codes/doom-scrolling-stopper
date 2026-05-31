@@ -2,7 +2,7 @@
 > Catches you doomscrolling and triggers an alarm.
 
 ## 🌐 Live Demo
-https://YOUR_USERNAME.github.io/doom-scrolling-stop
+https://sharu-codes.github.io/doom-scrolling-stop
 
 ## ⚙️ How It Works
 1. Your browser streams webcam frames every 500ms
